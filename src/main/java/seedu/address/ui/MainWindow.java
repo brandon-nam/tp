@@ -44,9 +44,7 @@ public class MainWindow extends UiPart<Stage> {
     private PersonProfile personProfile;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
-    private boolean isViewExit = false;
     private boolean isSaved;
-
     private Index indexOfAFostererToView;
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -225,20 +223,6 @@ public class MainWindow extends UiPart<Stage> {
             commandBox.setInConfirmationDialog(true);
         }
     }
-    /*
-    void handleConfirm() {
-        if (commandBox.getInConfirmationDialog()) {
-            commandBox.setInConfirmationDialog(false);
-            personListPanelPlaceholder.setVisible(true);
-            personProfilePlaceholder.getChildren().remove(personProfile.getRoot());
-            personProfilePlaceholder.setVisible(false);
-            sendFeedback("Exiting view as requested.");
-        } else {
-            commandBox.setInConfirmationDialog(true);
-        }
-    }
-
-    */
 
     void handleCancelViewExit() {
         sendFeedback("Cancelled exit.");
@@ -260,15 +244,10 @@ public class MainWindow extends UiPart<Stage> {
             }
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+
             if (commandResult.getCommandType() == CommandType.HELP) {
                 handleHelp();
             }
-            /*
-            if (commandResult.getCommandType() == CommandType.CLEAR) {
-                handleConfirm();
-            }
-
-            */
 
             if (commandResult.getCommandType() == CommandType.EXIT) {
                 handleExit();
@@ -284,46 +263,7 @@ public class MainWindow extends UiPart<Stage> {
                 handleViewExit();
             }
             if (commandResult.getCommandType() == CommandType.EDIT_FIELD) {
-                String [] tagAndNote = new String[]{"tags", "notes"};
-                Optional<String> tagOrNote = null;
-
-                Optional<PersonProfile.Field> field = Arrays.stream(PersonProfile.Field.values())
-                        .filter(f -> f.getDisplayName().toLowerCase().startsWith(commandText.toLowerCase().trim()))
-                        .findFirst();
-
-                if (!field.isPresent()) {
-                    tagOrNote = Arrays.stream(tagAndNote)
-                            .filter(f -> f.startsWith(commandText.toLowerCase().trim()))
-                            .findFirst();
-                }
-
-                if (!field.isPresent() && !tagOrNote.isPresent()) {
-                    field = Arrays.stream(PersonProfile.Field.values())
-                            .filter(f -> f.getDisplayName().toLowerCase().contains(commandText.toLowerCase().trim()))
-                            .findFirst();
-                }
-
-                if (!field.isPresent() && !tagOrNote.isPresent()) {
-                    tagOrNote = Arrays.stream(tagAndNote)
-                            .filter(f -> f.contains(commandText.toLowerCase().trim()))
-                            .findFirst();
-                }
-
-                if (!field.isPresent() && !tagOrNote.isPresent()) {
-                    sendFeedback("No such field found");
-                }
-
-                field.ifPresent(personProfile::setFocus);
-
-                if (!field.isPresent()) {
-                    tagOrNote.ifPresent(f -> {
-                        if (f.equals("tags")) {
-                            personProfile.setFocusTags();
-                        } else {
-                            personProfile.setFocusNotes();
-                        }
-                    });
-                }
+                findFieldAndSetFocus(commandText);
             }
             return commandResult;
         } catch (CommandException | ParseException e) {
@@ -337,7 +277,36 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
+    private void findFieldAndSetFocus(String commandText) {
 
+        // check prefix match first
+        Optional<PersonProfile.Field> field = Arrays.stream(PersonProfile.Field.values())
+                .filter(f -> f.getDisplayName().toLowerCase().startsWith(commandText.toLowerCase().trim()))
+                .findFirst();
+
+
+        // if prefix match fails, check if field names contain.
+        if (!field.isPresent()) {
+            field = Arrays.stream(PersonProfile.Field.values())
+                    .filter(f -> f.getDisplayName().toLowerCase().contains(commandText.toLowerCase().trim()))
+                    .findFirst();
+        }
+
+        // if both match fails, print no such field found.
+        if (!field.isPresent()) {
+            sendFeedback("No such field found");
+        }
+
+        if (field.isPresent()) {
+            if (field.get() == PersonProfile.Field.TAGS) {
+                personProfile.setFocusTags();
+            } else if (field.get() == PersonProfile.Field.NOTES) {
+                personProfile.setFocusNotes();
+            } else {
+                personProfile.setFocus(field.get());
+            }
+        }
+    }
 
     protected void sendFeedback(String feedback) {
         resultDisplay.setFeedbackToUser(feedback);
