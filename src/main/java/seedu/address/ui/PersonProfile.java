@@ -83,9 +83,7 @@ public class PersonProfile extends UiPart<Region> {
         HOUSING("Housing", Housing::isValidHousing, Housing.MESSAGE_CONSTRAINTS),
         AVAILABILITY("Availability", Availability::isValidAvailability, Availability.MESSAGE_CONSTRAINTS),
         ANIMAL_NAME("Animal Name", Name::isValidName, Name.MESSAGE_CONSTRAINTS),
-        ANIMAL_TYPE("Animal Type", AnimalType::isValidAnimalType, AnimalType.MESSAGE_CONSTRAINTS),
-        TAGS("Tags", null, null),
-        NOTES("Notes", null, null);
+        ANIMAL_TYPE("Animal Type", AnimalType::isValidAnimalType, AnimalType.MESSAGE_CONSTRAINTS);
 
         private final String name;
         private final Predicate<String> isValid;
